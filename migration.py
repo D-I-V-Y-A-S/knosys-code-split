@@ -28,6 +28,15 @@ ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
 SITE_ID = os.getenv("SITE_ID") 
 USER_TYPE = "Admin" 
 SECRET_KEY = os.getenv("SECRET_KEY")
+knosys_crt=os.getenv("crt_path")
+print(knosys_crt,"Knosys cert here")
+Conf_crt=os.getenv("confluence_crt")
+img_space_id=os.getenv("img_space_id")
+image_hub_space_key=os.getenv("image_hub_space_key")
+shared_paragraph_space_key=os.getenv("shared_paragraph_space_key")
+print(img_space_id, "Image space ID should be here")
+shared_space_id=os.getenv("Shared_space_id")
+access_token =  os.getenv("access_token")
 
 #knosys authentication
 def get_auth_challenge():
@@ -39,7 +48,7 @@ def get_auth_challenge():
             "userType": USER_TYPE
         }
         headers = {"Content-Type": "application/json"}
-        response = requests.post(url, json=payload, headers=headers, verify=False)
+        response = requests.post(url, json=payload, headers=headers, verify=knosys_crt)
         if response.status_code == 200:
             challenge_token = response.json().get("challengeString")
             return challenge_token
@@ -68,7 +77,7 @@ def get_auth_token(challenge_token, signature):
             "signature": signature
         }
         headers = {"Content-Type": "application/json"}
-        response = requests.post(url, json=payload, headers=headers, verify=False)
+        response = requests.post(url, json=payload, headers=headers, verify=knosys_crt)
         if response.status_code == 200:
             auth_token = response.json().get("token")
             print(auth_token)
@@ -102,7 +111,7 @@ def getuserEmail(created_by):
     return get_confluence_email(created_by)
 
 #fetch_documents
-response=requests.get(source_url,headers=headers_1)
+response=requests.get(source_url,headers=headers_1,verify=Conf_crt)
 if response.status_code == 200:
     try:
         data = response.json()
@@ -122,88 +131,6 @@ api_token=os.getenv("CONFLUENCE_API_TOKEN")
 confluence_url =os.getenv("CONFLUENCE_URL")
 auth = HTTPBasicAuth(confluence_email, api_token)
 headers={"Content-Type": "application/json"}
-
-# def color_formatter(html_content):
-#     def rgb_to_hex(match):
-#         rgba = [float(x.strip()) for x in match.group(1).split(',')]
-#         r, g, b = map(int, rgba[:3])
-#         return f'#{r:02x}{g:02x}{b:02x}'
-
-#     # Convert rgba() or rgb() to hex
-#     html_content = re.sub(r'rgba?\(([^)]+)\)', rgb_to_hex, html_content)
-
-#     soup = BeautifulSoup(html_content, "lxml")
-    
-#     for h in soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6']):
-#         if h.string and not h.find('strong'):
-#             strong = soup.new_tag("strong")
-#             strong.string = h.string
-#             h.string.replace_with(strong)
-
-#     # for tag in soup.find_all(True):
-#     #     style = tag.get('style', '')
-#     #     if 'font-weight' in style and 'bold' in style and tag.name != 'strong':
-#     #         # Create new <strong> with the tag's text content
-#     #         strong_tag = soup.new_tag('strong')
-#     #         strong_tag.string = tag.get_text()
-#     #         tag.replace_with(strong_tag)
-
-#     def update_background_only(style, new_bg):
-#         styles = dict(item.split(":") for item in style.split(";") if item.strip())
-#         styles['background-color'] = new_bg
-#         return "; ".join(f"{k.strip()}:{v.strip()}" for k, v in styles.items()) + ";"
-#     def convert_units(style):
-#         style = re.sub(r'([\d.]+)\s*cm', lambda m: f"{float(m.group(1)) * 37.8:.2f}px", style)
-#         style = re.sub(r'([\d.]+)\s*pt', lambda m: f"{float(m.group(1)) * 1.333:.2f}px", style)
-#         return style
-
-#     # Inside your tag loop:
-#     for tag in soup.find_all(True):
-#         style = tag.get('style', '')
-#         style = convert_units(style)
-#         match = re.search(r'background-color:\s*(#[0-9a-fA-F]{6})', style)
-#         if match:
-#             color = match.group(1)
-#             new_style = update_background_only(style, color)
-#             tag['style'] = new_style
-#             if tag.name in ['td', 'th']:
-#                 tag['data-highlight-colour'] = color
-#             else:
-#                 tag.attrs.pop('data-highlight-colour', None)
-
-#     # for table in soup.find_all('table'):
-#     #     table['data-layout'] = 'default'
-#     #     table['data-layout'] = 'full-width'
-#     #     table['data-table-width'] = '100%'
-#     #     table['style'] = 'width: 100%;'
-    
-#     for table in soup.find_all('table'):
-#         if 'width' in table.attrs:
-#             del table['width']
-#         style = table.get('style', '')
-#         style = re.sub(r'width\s*:\s*[^;]+;?', '', style).strip().rstrip(';')
-#         table['data-layout'] = 'default'
-#     for tag in soup.find_all(True):
-#         style = tag.get('style', '')
-#         style = convert_units(style)
-#         match = re.search(r'background-color:\s*(#[0-9a-fA-F]{6})', style)
-#         if match:
-#             color = match.group(1)
-#             if tag.name in ['td', 'th']:
-#                 tag['data-highlight-colour'] = color
-#                 tag['style'] = update_background_only(style, color)
-
-#             else:
-#                 tag['style'] = update_background_only(style, color)
-
-#                 tag.attrs.pop('data-highlight-colour', None)
-#     with open("sample.html", "w", encoding="utf-8") as f:
-#         f.write(html_content)
-#         f.write(str(soup))
-#     return str(soup)
-
-import re
-from bs4 import BeautifulSoup
 
 def color_formatter(html_content):
     def rgb_to_hex(match):
@@ -307,13 +234,8 @@ def color_formatter(html_content):
 
 def get_page_by_title(space_key,title):
     try:
-        url = f"{confluence_url}/content"
-        params = {
-            "spaceKey": space_key,
-            "title": title,
-            "expand": "version"
-        }
-        response = requests.get(url, headers=headers, auth=auth, params=params)
+        url = f"https://api.atlassian.com/ex/confluence/{cloud_id}/wiki/api/v2/pages?title={title}&spaceKey={space_key}"
+        response = requests.get(url, headers=headers, auth=auth, params=params,verify=Conf_crt)
         if response.status_code == 200 and response.json()["size"] > 0:
             # print(response.status_code,"-->",response.text)
             print("Page Title fetched!")
@@ -324,33 +246,27 @@ def get_page_by_title(space_key,title):
         print(E)
 
 def get_current_version(page_id):
-    url = f"{confluence_url}/content/{page_id}?expand=version"
-    resp = requests.get(url, headers=headers, auth=auth)
+    url = f"https://api.atlassian.com/ex/confluence/{cloud_id}/wiki/api/v2/pages/{page_id}"
+    resp = requests.get(url, headers=headers, auth=auth,verify=Conf_crt)
     if resp.status_code == 200:
         return resp.json()['version']['number']
     else:
         print(f"Failed to get page version: {resp.status_code} - {resp.text}")
         return None
     
-def create_page(space_key, title, content):
-    url = f"{confluence_url}/content"
+def create_page(space_key, title, content,curr_space_id):
+    url = f"https://api.atlassian.com/ex/confluence/{cloud_id}/wiki/api/v2/pages"
     print(url,space_key, title, content)
     data = {
-        "version": {
-        "number": 1
-        },
-        "type": "page",
-        "title": title,
-        "space": {"key": space_key},
-        "body": {
-            "storage": {
-                "value": content,
-                "representation": "storage"
-            }
-        }
+  "spaceId": curr_space_id,
+  "title": title,
+  "body": {
+    "value": content,
+    "representation": "storage",
+  }
     }
     try:
-        response = requests.post(url, headers=headers, auth=auth, data=json.dumps(data))
+        response = requests.post(url, headers=headers, auth=auth, data=json.dumps(data),verify=Conf_crt)
         if(response.status_code==200):
             response_json = response.json()
             # print(response.status_code,"-->",response.text)
@@ -366,17 +282,18 @@ def attach_file(page_id, file_path, file_name):
     if file_name == "2e6d82ef-524c-ea11-a960-000d3ad095fb.png":
         print(f"Skipped upload for unwanted image: {file_name}")
         return None
-    upload_url = f"{confluence_url}/content/{page_id}/child/attachment"
+    upload_url = f"https://api.atlassian.com/ex/confluence/{cloud_id}/wiki/rest/api/content/{page_id}/child/attachment"
     
     headers_no_json = {
         "X-Atlassian-Token": "no-check",  # prevents XSRF check
-        "Accept": "application/json"
+        "Accept": "application/json",
+        "Authorization": f"Bearer {access_token}"
     }
     with open(file_path, "rb") as f:
         files = {
             'file': (file_name, f, 'image/png')
         }
-        response = requests.post(upload_url, headers=headers_no_json, auth=auth, files=files)
+        response = requests.post(upload_url, headers=headers_no_json, auth=auth, files=files,verify=Conf_crt)
     try:
         if response.status_code == 200 or response.status_code == 201:
             print(f"Uploaded: {file_name}")
@@ -389,20 +306,18 @@ def attach_file(page_id, file_path, file_name):
 
 def update_page(page_id, title, html_content, current_version):
     try:
-        url = f"{confluence_url}/content/{page_id}"
+        url = f"https://api.atlassian.com/ex/confluence/{cloud_id}/wiki/api/v2/pages/{page_id}"
         data = {
             "id": page_id,
-            "type": "page",
+            "status": "current",
             "title": title,
             "version": {"number": current_version + 1},
             "body": {
-                "storage": {
                     "value": html_content,
                     "representation": "storage"
-                }
             }
         }
-        response = requests.put(url, headers=headers, auth=auth, data=json.dumps(data))
+        response = requests.put(url, headers=headers, auth=auth, data=json.dumps(data),verify=Conf_crt)
         print(response.status_code)
         if(response.status_code == 200):
             # print(response.status_code,"-->",response.text)
@@ -457,7 +372,7 @@ def get_tooltip_panel_content(external_id):
 
         def fetch_and_save_image(item_id):
             url = f'https://rest.opt.knoiq.co/api/v2/resources/images/{item_id}'
-            response = requests.get(url, headers=headers_1)
+            response = requests.get(url, headers=headers_1,verify=knosys_crt)
 
             if response.status_code == 200:
                 os.makedirs(images_folder, exist_ok=True)
@@ -604,7 +519,7 @@ def download_images_from_html_and_update_content(html_content):
             if not item_id:
                 continue
             url = f'https://rest.opt.knoiq.co/api/v2/resources/images/{item_id}'
-            response = requests.get(url, headers=headers_1)
+            response = requests.get(url, headers=headers_1,verify=knosys_crt)
             if response.status_code == 200:
                 os.makedirs(images_folder, exist_ok=True)
                 filename = f"{item_id}.png"
@@ -619,71 +534,6 @@ def download_images_from_html_and_update_content(html_content):
     except Exception as E:
         print(E)
 
-# def extract_shared_content(data):
-#     shared_content = []
-
-#     def recurse_children(children):
-#         for child in children:
-#             try:
-#                 detail = child.get("detail", {})
-#                 if detail.get("itemType") == "SharedParagraph":
-#                     fields = child.get("fields", [])
-#                     title_value = ""
-#                     value = ""
-
-#                     for field in fields:
-#                         if field.get("name") == "ParagraphTitle":
-#                             title_value = field.get("value")
-#                         if field.get("name") == "Text":
-#                             value = field.get("value")
-
-#                     if title_value and value:
-#                         if 'data-externalid="' in value:
-#                             value = highlight_externalid(value)
-#                             print("value of imgId",value)
-#                         value= download_images_from_html_and_update_content(value)
-#                         existing_page = get_page_by_title(shared_paragraph_space_key,title_value)
-#                         if not existing_page:
-#                             shared_content.append({
-#                                 "title": title_value,
-#                                 "content": value
-#                             })
-
-#                             try:
-#                                 print("body of sp",value)
-#                                 page_id = create_page(shared_paragraph_space_key, title_value, value)
-#                                 uploaded = []
-#                                 try:
-#                                     for file in os.listdir(images_folder):
-#                                         file_path_full = os.path.join(images_folder, file)
-#                                         print("filepathfull",file_path_full)
-#                                         print(page_id,"page_id")
-#                                         attach_file(page_id, file_path_full, file)
-#                                         uploaded.append(file)
-#                                 except Exception as e:
-#                                     print(e)
-#                                 current_version = get_current_version(page_id)
-#                                 print("current_version",current_version)
-#                                 if current_version is not None:
-#                                     update_page(page_id, title_value,value, current_version)
-#                                 else:
-#                                     print(f"Could not fetch version for {title_value}")
-
-#                             except Exception as e:
-#                                 print(f"Failed to create page '{title_value}': {e}")
-#                 if "children" in child:
-#                     recurse_children(child["children"])
-#             except Exception as e:
-#                 print(f"Error processing child: {e}")
-
-#     try:
-#         recurse_children(data.get("children", []))
-#         return shared_content
-#     except Exception as e:
-#         print(e)
- 
-# extract_macro = extract_shared_content(data)
-# html_parts = []
 
 def extract_shared_content(data):
     shared_content = []
@@ -725,7 +575,7 @@ def extract_shared_content(data):
                                 if not existing_image_page:
                                     image_page_content = f'<ac:image><ri:attachment ri:filename="{image_item_id}.png"/></ac:image>'
                                     # Create the page for the image
-                                    image_page_id = create_page(image_hub_space_key, image_page_title, image_page_content)
+                                    image_page_id = create_page(image_hub_space_key, image_page_title, image_page_content,img_space_id)
                                     for file in os.listdir(images_folder):
                                         file_path_full = os.path.join(images_folder, file)
                                         attach_file(image_page_id, file_path_full, file)
@@ -762,7 +612,7 @@ def extract_shared_content(data):
 
                             try:
                                 clean_html=color_formatter(value)
-                                page_id = create_page(shared_paragraph_space_key, title_value, clean_html)
+                                page_id = create_page(shared_paragraph_space_key, title_value, clean_html,shared_space_id)
                                 uploaded = []
                             except Exception as e:
                                 print(f"Failed to create page '{title_value}': {e}")
@@ -898,7 +748,7 @@ def sync_hidden_links_with_shared_pages_using_data(hidden_text, data):
                 print("main_page",main_page)
                 if not main_page:
                     print(title,"hello no page")
-                    create_page(space_key, title,"To be migrated!")
+                    create_page(space_key, title,"To be migrated!",space_id)
                     
                 # Step 6: Replace the <a> with Confluence link macro
                 link_macro = f'''
@@ -1028,7 +878,7 @@ def extract_content_from_fields(child):
             existing_image_page = get_page_by_title(image_hub_space_key, image_page_title)
             if not existing_image_page:
                 image_page_content = f"<ac:image><ri:attachment ri:filename='{image_filename}'/></ac:image>"
-                image_page_id = create_page(image_hub_space_key, image_page_title, image_page_content)
+                image_page_id = create_page(image_hub_space_key, image_page_title, image_page_content,img_space_id)
 
                 if os.path.exists(image_path):
                     attach_file(image_page_id, image_path, image_filename)
@@ -1057,7 +907,7 @@ def extract_content_from_fields(child):
             with open("test_output_1.html", "w", encoding="utf-8") as f:
                 f.write(hidden_text)
                 clean_html=color_formatter(hidden_text)
-            create_page(shared_paragraph_space_key, clean_title,clean_html)
+            create_page(shared_paragraph_space_key, clean_title,clean_html,shared_space_id)
 
         # Step 5: Wrap it with expand macro
         print("link_text_demo",link_text)
@@ -1104,7 +954,7 @@ def replace_image_macros_with_include_pages(html_content):
             image_page_content = f"<ac:image><ri:attachment ri:filename='{filename}'/></ac:image>"
 
             # Create page
-            image_page_id = create_page(image_hub_space_key, image_page_title, image_page_content)
+            image_page_id = create_page(image_hub_space_key, image_page_title, image_page_content,img_space_id)
 
             # Attach image
             file_path_full = os.path.join(images_folder, filename)
@@ -1166,31 +1016,6 @@ def find_fragment_in_soup(soup, html_fragment):
     except Exception as E:
         print(E)
 
-# def generate_confluence_storage_format(html_content, data):
-#     try:
-#         soup = BeautifulSoup(html_content, 'html.parser')
-
-#         # Look for a "Back to Top" link
-#         back_to_top_link = soup.find('a', href='#PageTop')
-#         if back_to_top_link:
-#             # Check if the anchor macro for PageTop exists already
-#             existing_anchor = soup.find('ac:structured-macro', {'ac:name': 'anchor'})
-#             # if not existing_anchor:
-#             anchor_macro = soup.new_tag('ac:structured-macro', **{'ac:name': 'anchor'})
-#             param = soup.new_tag('ac:parameter', **{'ac:name': ''})
-#             param.string = 'PageTop'
-#             anchor_macro.append(param)
-#             if soup.body:
-#                 soup.body.insert(0, anchor_macro)
-#             else:
-#                 soup.insert(0, anchor_macro)
-
-#         return str(soup)
-
-#     except Exception as e:
-#         print(f"Error in generate_confluence_storage_format: {e}")
-#         return None
-
 def generate_confluence_storage_format(html_content, data):
     try:
         # Your anchor macro as a string
@@ -1226,9 +1051,6 @@ def generate_confluence_storage_format(html_content, data):
 #                 soup.append(anchor_macro)
 
 #         return str(soup)
-
-    except Exception as e:
-        return None
 
 # def generate_confluence_storage_format(html_content, data):
 #     try:
@@ -1307,7 +1129,7 @@ for link in external_links:
 itemid_to_conf={}
 for itemid in data_itemid:
     pagefetch_url=f"https://rest.opt.knoiq.co/api/v2/admin/documents/{itemid}"
-    response=requests.get(pagefetch_url,headers=headers_1)
+    response=requests.get(pagefetch_url,headers=headers_1,verify=knosys_crt)
     if response.status_code == 200:
         try:
             data = response.json()
@@ -1359,7 +1181,7 @@ try:
     print(page,"demo12",title,space_key)
     print(page, "demo12", repr(title), space_key)
     if not page:
-        page_id = create_page(space_key, title, clean_html)
+        page_id = create_page(space_key, title, clean_html,space_id)
         if page_id:
             print(f"✅ Page created: {title}")
             keywords = data.get('meta', {}).get('keywords', '')
@@ -1375,8 +1197,8 @@ try:
                     for batch in chunk_labels(labels):
                         print("batch",batch)
                         payload_1 = [{"prefix": "global", "name": label} for label in batch]
-                        url = f"{confluence_url}/content/{page_id}/label"
-                        response = requests.post(url, headers=headers, auth=auth, json=payload_1)
+                        url = f"https://api.atlassian.com/ex/confluence/{cloud_id}/wiki/rest/api/content/{page_id}/label"
+                        response = requests.post(url, headers=headers, auth=auth, json=payload_1,verify=Conf_crt)
                         if response.status_code == 200:
                             print(f"Added batch: {batch}")
                         else:
@@ -1403,8 +1225,8 @@ try:
                     for batch in chunk_labels(labels):
                         print("batch",batch)
                         payload_1 = [{"prefix": "global", "name": label} for label in batch]
-                        url = f"{confluence_url}/content/{page_id}/label"
-                        response = requests.post(url, headers=headers, auth=auth, json=payload_1)
+                        url = f"https://api.atlassian.com/ex/confluence/{cloud_id}/wiki/rest/api/content/{page_id}/label"
+                        response = requests.post(url, headers=headers, auth=auth, json=payload_1,verify=Conf_crt)
                         if response.status_code == 200:
                             print(f"Added batch: {batch}")
                         else:
@@ -1440,8 +1262,8 @@ try:
                 page_id_track = tracking_page['id']
                 current_version = tracking_page['version']['number']
 
-                url = f"{confluence_url}/content/{page_id_track}?expand=body.storage"
-                response = requests.get(url, headers=headers, auth=auth)
+                url = f"https://api.atlassian.com/ex/confluence/{cloud_id}/wiki/api/v2/pages/{page_id_track}?body-format=storage"
+                response = requests.get(url, headers=headers, auth=auth,verify=Conf_crt)
                 current_body = response.json()["body"]["storage"]["value"]
 
                 new_row = f'''
